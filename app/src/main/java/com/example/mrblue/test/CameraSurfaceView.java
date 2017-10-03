@@ -98,7 +98,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         // empty. Take care of releasing the Camera preview in your activity.
 
         myCamera.stopPreview();
-        myCamera.release();
+//        myCamera.release();
     }
 
     private Camera.Size getBestPreviewSize(int width, int height,

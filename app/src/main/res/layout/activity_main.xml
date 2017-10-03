@@ -10,7 +10,7 @@
     <include
         layout="@layout/cameraview"
         android:layout_width="match_parent"
-        android:layout_height="560dp" />
+        android:layout_height="match_parent" />
 
     <ListView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@android:id/list"

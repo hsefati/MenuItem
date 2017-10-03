@@ -3,40 +3,43 @@ package com.example.mrblue.test;
 import android.Manifest;
 import android.content.res.Configuration;
 import android.hardware.Camera;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-        import android.content.pm.PackageManager;
-        import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-        import android.view.ViewGroup;
-        import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-        import android.widget.ListView;
-        import android.widget.TextView;
-        import java.util.Collections;
-        import java.util.List;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends ListActivity {
+import java.util.Collections;
+import java.util.List;
+
+public class MainActivity extends ListActivity{
     AppAdapter adapter=null;
 
     Camera myCamera;
     FrameLayout myLayout;
     CameraSurfaceView CameraSurfaceView;
-
-    private boolean mIsPreviewing;
-    private static final int PREVIEW_PAUSE = 500;
     private static final int REQUEST_CAMERA = 0;
+
+    private SensorMotion sensorMotion;
 
     private static final String TAG = "testProject";
 
@@ -55,21 +58,33 @@ public class MainActivity extends ListActivity {
         Collections.sort(launchableApps,
                 new ResolveInfo.DisplayNameComparator(packetManager));
 
-        adapter=new AppAdapter(packetManager, launchableApps);
+        adapter=new AppAdapter(this, packetManager, launchableApps);
         setListAdapter(adapter);
 
         if(getCameraPermission()){
             myCamera = getCameraInstance();
         }
-
         if(myCamera != null)
             initAfterCameraGranted();
+
+        ListView listView = this.getListView();
+
+        sensorMotion = new SensorMotion(this, listView);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Register sensor motion
+        this.sensorMotion.registerSensorMotion();
     }
 
     @Override
     protected void onPause() {
 
         super.onPause();
+        //Register sensor motion
+        this.sensorMotion.unRegisterSensorMotion();
         // Release camera resources
         releaseCameraResources();
     }
@@ -100,6 +115,11 @@ public class MainActivity extends ListActivity {
 
         startActivity(i);
     }
+
+
+    /*
+    Camera methods from this line
+     */
 
     private void initAfterCameraGranted(){
 
@@ -183,46 +203,8 @@ public class MainActivity extends ListActivity {
     // Release camera so other applications can use it.
     private void releaseCameraResources() {
         if (null != myCamera) {
-//          myCamera.release();
+//            myCamera.release();
             myCamera = null;
-        }
-    }
-
-
-    ///////////////////////////////////////////////////////////////
-
-    class AppAdapter extends ArrayAdapter<ResolveInfo> {
-        private PackageManager pm=null;
-
-        AppAdapter(PackageManager pm, List<ResolveInfo> apps) {
-            super(MainActivity.this.getApplicationContext(), R.layout.row, apps);
-            this.pm=pm;
-        }
-
-        @Override
-        public View getView(int position, View convertView,
-                            ViewGroup parent) {
-            if (convertView==null) {
-                convertView=newView(parent);
-            }
-
-            bindView(position, convertView);
-
-            return(convertView);
-        }
-
-        private View newView(ViewGroup parent) {
-            return(getLayoutInflater().inflate(R.layout.row, parent, false));
-        }
-
-        private void bindView(int position, View row) {
-            TextView label=(TextView)row.findViewById(R.id.label);
-
-            label.setText(getItem(position).loadLabel(pm));
-
-            ImageView icon=(ImageView)row.findViewById(R.id.icon);
-
-            icon.setImageDrawable(getItem(position).loadIcon(pm));
         }
     }
 }
